@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerAI Mentor — Gemini-Powered AI Career Assistant</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 & Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <!-- Highlight.js for code blocks -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-title">
+          <div class="brand-icon">
+            <i class="bi bi-stars"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-white">CareerAI Mentor</div>
+            <div style="font-size: 0.72rem; color: var(--slate-400); font-weight: 400;">Gemini Career Intelligence</div>
+          </div>
+        </div>
+        
+        <button id="btnNewChat" class="btn btn-primary w-100 mt-3 d-flex align-items-center justify-content-center gap-2" style="background: var(--indigo-600); border: none; font-size: 0.88rem; font-weight: 600; padding: 0.55rem;">
+          <i class="bi bi-plus-lg"></i> Percakapan Baru
+        </button>
+
+        <div class="mt-2 position-relative">
+          <input type="text" id="searchConvInput" class="form-control form-control-sm" placeholder="Cari percakapan..." style="background: var(--navy-700); border-color: var(--border-color); color: #fff; font-size: 0.8rem; padding-left: 2rem;">
+          <i class="bi bi-search position-absolute text-muted" style="left: 0.65rem; top: 0.45rem; font-size: 0.8rem;"></i>
+        </div>
+      </div>
+
+      <!-- Conversations List -->
+      <div id="conversationsList" class="sidebar-conversations">
+        <!-- Injected via JavaScript -->
+        <div class="text-center py-4 text-muted" style="font-size: 0.82rem;">
+          <div class="spinner-border spinner-border-sm text-secondary mb-2" role="status"></div>
+          <div>Memuat riwayat...</div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="status-pill" id="apiStatusBadge">
+            <span class="status-dot"></span>
+            <span id="apiStatusText">Gemini Connected</span>
+          </span>
+          <button id="btnOpenSettings" class="btn btn-sm btn-outline-secondary p-1 px-2" style="border-color: var(--border-color); color: var(--slate-300);" title="AI Parameter Settings">
+            <i class="bi bi-sliders"></i>
+          </button>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.74rem; color: var(--slate-400);">
+          <span>Preset: <strong id="sidebarActivePreset" class="text-indigo-400">Balanced</strong></span>
+          <span id="sidebarActiveModel" class="text-muted">gemini-flash-lite-latest</span>
+        </div>
+
+        <!-- Sidebar User Section -->
+        <div id="sidebarUserSection" class="pt-2 border-top border-secondary-subtle" style="font-size: 0.78rem;">
+          <div id="sidebarGuestPrompt" class="d-flex justify-content-between align-items-center">
+            <span class="text-muted"><i class="bi bi-person me-1"></i>Tamu</span>
+            <a href="javascript:void(0)" onclick="app.openAuthModal('login')" class="text-indigo-400 text-decoration-none fw-semibold">Masuk Akun</a>
+          </div>
+          <div id="sidebarUserPrompt" class="d-none justify-content-between align-items-center">
+            <span class="text-truncate text-light d-inline-block" style="max-width: 150px;" id="sidebarUserEmail">user@example.com</span>
+            <span class="d-inline-flex gap-2">
+              <a href="/dashboard.html" class="text-indigo-400 text-decoration-none fw-semibold">Dashboard</a>
+              <a href="javascript:void(0)" onclick="app.logout()" class="text-danger text-decoration-none">Keluar</a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Chat Header -->
+      <header class="chat-header">
+        <div class="d-flex align-items-center gap-2">
+          <button id="btnToggleSidebar" class="btn btn-sm btn-outline-secondary d-md-none" style="border-color: var(--border-color); color: #fff;">
+            <i class="bi bi-list fs-5"></i>
+          </button>
+          <div>
+            <h1 class="h6 mb-0 text-white fw-bold" id="chatTitle">Percakapan Baru</h1>
+            <div class="d-flex align-items-center gap-2 mt-1">
+              <span class="badge bg-dark border border-secondary text-light" style="font-size: 0.68rem;" id="headerModelBadge">gemini-flash-lite-latest</span>
+              <span class="badge bg-indigo-900 border border-indigo-700 text-indigo-300" style="font-size: 0.68rem;" id="headerPresetBadge">Preset: Balanced</span>
+              <span class="badge bg-secondary text-light" style="font-size: 0.68rem; display: none;" id="headerIntentBadge"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <a href="/dashboard.html" class="btn btn-sm btn-outline-secondary d-none d-sm-inline-flex align-items-center gap-1" style="border-color: var(--border-color); color: var(--slate-200); font-size: 0.8rem;">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+          <button id="btnHeaderSettings" class="btn btn-sm btn-outline-secondary d-none d-sm-inline-flex align-items-center gap-1" style="border-color: var(--border-color); color: var(--slate-200); font-size: 0.8rem;">
+            <i class="bi bi-gear"></i> Konfigurasi AI
+          </button>
+          
+          <!-- Auth Controls in Header -->
+          <div id="headerAuthSection" class="d-flex align-items-center">
+            <button id="btnOpenAuthModal" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" style="background: var(--indigo-600); border: none; font-size: 0.8rem;" onclick="app.openAuthModal('login')">
+              <i class="bi bi-box-arrow-in-right"></i> <span class="d-none d-sm-inline">Masuk / Daftar</span>
+            </button>
+            <div id="userProfileBadge" class="d-none align-items-center gap-2">
+              <span class="badge d-flex align-items-center gap-1 bg-dark border border-secondary text-light py-1 px-2" style="font-size: 0.78rem;">
+                <i class="bi bi-person-circle text-indigo-400"></i>
+                <span id="headerUserName">Pengguna</span>
+              </span>
+              <button id="btnLogout" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.76rem;" onclick="app.logout()" title="Keluar">
+                <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline">Keluar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Quick Action Toolbar -->
+      <section class="quick-toolbar" aria-label="Aksi Cepat">
+        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#cvModal">
+          <i class="bi bi-file-earmark-person text-indigo-400"></i> CV Assistant
+        </button>
+        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#skillGapModal">
+          <i class="bi bi-diagram-3 text-emerald-400"></i> Skill Gap Analyzer
+        </button>
+        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#roadmapModal">
+          <i class="bi bi-signpost-split text-amber-400"></i> Learning Roadmap
+        </button>
+        <button class="btn-action" data-bs-toggle="modal" data-bs-target="#interviewModal">
+          <i class="bi bi-mic text-rose-400"></i> Mock Interview
+        </button>
+      </section>
+
+      <!-- Chat Messages Scroll Container -->
+      <section id="chatMessages" class="chat-messages" aria-live="polite">
+        <!-- Empty State (shown when no messages exist) -->
+        <div id="emptyState" class="empty-state">
+          <div class="empty-state-icon">
+            <i class="bi bi-compass"></i>
+          </div>
+          <h2 class="h4 fw-bold text-white mb-2">Selamat Datang di CareerAI Mentor</h2>
+          <p class="text-muted mb-4" style="font-size: 0.92rem; max-width: 520px; margin: 0 auto;">
+            Asisten karier pintar bertenaga Google Gemini. Dapatkan rekomendasi jalur karier, tinjauan CV berstandar profesional, analisis kesenjangan skill, roadmap belajar terstruktur, dan simulasi wawancara kerja.
+          </p>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="empty-card" onclick="app.useQuickPrompt('Tolong bantu saya memilih jalur karir di bidang Tech: Saya suka logika dan problem solving tapi belum mahir coding. Apa opsi terbaik untuk saya?')">
+                <i class="bi bi-lightbulb"></i>
+                <div class="fw-semibold text-white mb-1" style="font-size: 0.9rem;">Eksplorasi Jalur Karier</div>
+                <div class="text-muted" style="font-size: 0.78rem;">Rekomendasi spesialisasi bidang IT berdasarkan preferensi dan kekuatan Anda.</div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="empty-card" data-bs-toggle="modal" data-bs-target="#cvModal">
+                <i class="bi bi-file-earmark-text"></i>
+                <div class="fw-semibold text-white mb-1" style="font-size: 0.9rem;">Review Bullet Points CV</div>
+                <div class="text-muted" style="font-size: 0.78rem;">Tingkatkan resume dengan action verbs dan metrik terukur tanpa mengarang pengalaman.</div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="empty-card" data-bs-toggle="modal" data-bs-target="#skillGapModal">
+                <i class="bi bi-crosshair"></i>
+                <div class="fw-semibold text-white mb-1" style="font-size: 0.9rem;">Analisis Skill Gap</div>
+                <div class="text-muted" style="font-size: 0.78rem;">Identifikasi kesenjangan skill esensial vs opsional terhadap target posisi impian.</div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="empty-card" data-bs-toggle="modal" data-bs-target="#interviewModal">
+                <i class="bi bi-chat-quote"></i>
+                <div class="fw-semibold text-white mb-1" style="font-size: 0.9rem;">Simulasi Wawancara Kerja</div>
+                <div class="text-muted" style="font-size: 0.78rem;">Latihan wawancara satu per satu dengan feedback format STAR dan evaluasi objektif.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Global Error Banner & Retry -->
+      <div id="errorBanner" class="alert alert-danger mx-3 my-2 d-none d-flex align-items-center justify-content-between" style="background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.4); color: #fecdd3; font-size: 0.88rem;">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+          <span id="errorMessage">Terjadi kesalahan pada koneksi Gemini API.</span>
+        </div>
+        <button id="btnRetry" class="btn btn-sm btn-outline-danger" style="font-size: 0.78rem;">
+          <i class="bi bi-arrow-clockwise"></i> Coba Lagi
+        </button>
+      </div>
+
+      <!-- Chat Input Area -->
+      <footer class="chat-input-container">
+        <div class="input-box-wrapper">
+          <textarea 
+            id="chatInput" 
+            class="chat-textarea" 
+            rows="1" 
+            placeholder="Tanyakan apa saja tentang karier, CV, skill gap, atau roadmap belajar..." 
+            maxlength="4000"
+            aria-label="Ketik pesan karier"></textarea>
+          
+          <div class="input-bottom-row">
+            <div class="input-hints">
+              <span id="charCounter">0 / 4000</span>
+              <span class="mx-2">•</span>
+              <span class="d-none d-sm-inline">Tekan <kbd style="background: var(--navy-700); color: #cbd5e1; font-size: 0.7rem;">Enter</kbd> untuk kirim, <kbd style="background: var(--navy-700); color: #cbd5e1; font-size: 0.7rem;">Shift+Enter</kbd> baris baru</span>
+            </div>
+
+            <button id="btnSend" class="btn-send" type="button" aria-label="Kirim Pesan">
+              <span>Kirim</span>
+              <i class="bi bi-send-fill" style="font-size: 0.8rem;"></i>
+            </button>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- MODAL 1: CV ASSISTANT -->
+  <div class="modal fade" id="cvModal" tabindex="-1" aria-labelledby="cvModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title d-flex align-items-center gap-2 text-white" id="cvModalLabel">
+            <i class="bi bi-file-earmark-person text-indigo-400"></i> CV Assistant — Evaluasi & Peningkatan CV
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted" style="font-size: 0.85rem;">
+            Masukkan teks pengalaman kerja atau ringkasan profesional Anda. AI akan mengevaluasi keterbacaan ATS, memperkuat action verbs, dan menyesuaikan dengan target posisi tanpa mengarang pencapaian palsu.
+          </p>
+          <div class="mb-3">
+            <label for="cvTargetRole" class="form-label">Target Posisi Pekerjaan</label>
+            <input type="text" class="form-control" id="cvTargetRole" placeholder="Contoh: Frontend Developer / Data Analyst / Product Manager">
+          </div>
+          <div class="mb-3">
+            <label for="cvJobDesc" class="form-label">Deskripsi Pekerjaan / Kualifikasi Target (Opsional)</label>
+            <textarea class="form-control" id="cvJobDesc" rows="3" placeholder="Tempelkan kualifikasi atau persyaratan lowongan pekerjaan di sini..."></textarea>
+          </div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-end gap-2 mb-1">
+              <label for="cvTextContent" class="form-label mb-0">Teks CV / Pengalaman Kerja Saat Ini <span class="text-danger">*</span></label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="file" id="cvFileInput" class="d-none" accept=".pdf,.docx,.txt,.md">
+                <button type="button" id="btnImportCV" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                  <i class="bi bi-upload"></i> Impor File (PDF/Word)
+                </button>
+              </div>
+            </div>
+            <textarea class="form-control" id="cvTextContent" rows="7" placeholder="Tempelkan bullet points atau isi CV Anda di sini, atau impor dari file PDF/DOCX..."></textarea>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <small class="text-muted" style="font-size: 0.72rem;">Format didukung: .pdf, .docx, .txt, .md (maks. 5 MB). Anda juga bisa drag &amp; drop file ke kotak ini.</small>
+              <small id="cvFileStatus" class="d-none" style="font-size: 0.72rem;"></small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="button" id="btnSubmitCV" class="btn btn-primary btn-sm" style="background: var(--indigo-600); border: none;">
+            <i class="bi bi-search"></i> Analisis & Tingkatkan CV
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: SKILL GAP ANALYZER -->
+  <div class="modal fade" id="skillGapModal" tabindex="-1" aria-labelledby="skillGapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title d-flex align-items-center gap-2 text-white" id="skillGapModalLabel">
+            <i class="bi bi-diagram-3 text-emerald-400"></i> Skill Gap Analyzer — Analisis Kesenjangan Skill
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted" style="font-size: 0.85rem;">
+            Bandingkan keahlian Anda saat ini dengan standar industri untuk posisi target. AI akan mengkategorikan skill esensial vs opsional, tingkat kesulitan, serta rekomendasi latihan praktis.
+          </p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="gapTargetRole" class="form-label">Target Posisi Pekerjaan <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="gapTargetRole" placeholder="Contoh: Backend Developer Golang">
+            </div>
+            <div class="col-md-6">
+              <label for="gapLevel" class="form-label">Tingkat Pengalaman</label>
+              <select class="form-select" id="gapLevel">
+                <option value="Entry-Level / Fresh Graduate">Entry-Level / Fresh Graduate</option>
+                <option value="Junior (1-2 tahun)">Junior (1-2 tahun)</option>
+                <option value="Mid-Level (3-5 tahun)">Mid-Level (3-5 tahun)</option>
+                <option value="Career Switcher (Non-IT ke IT)">Career Switcher (Non-IT ke IT)</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label for="gapCurrentSkills" class="form-label">Skill yang Sudah Dimiliki Saat Ini <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="gapCurrentSkills" rows="3" placeholder="Contoh: HTML, CSS dasar, JavaScript dasar, Git, pemahaman database MySQL sederhana"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label for="gapAvailableHours" class="form-label">Waktu Belajar yang Tersedia</label>
+              <input type="text" class="form-control" id="gapAvailableHours" value="10 jam / minggu">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="button" id="btnSubmitSkillGap" class="btn btn-primary btn-sm" style="background: var(--indigo-600); border: none;">
+            <i class="bi bi-graph-up-arrow"></i> Mulai Analisis Gap
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: LEARNING ROADMAP GENERATOR -->
+  <div class="modal fade" id="roadmapModal" tabindex="-1" aria-labelledby="roadmapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title d-flex align-items-center gap-2 text-white" id="roadmapModalLabel">
+            <i class="bi bi-signpost-split text-amber-400"></i> Learning Roadmap Generator
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted" style="font-size: 0.85rem;">
+            Susun rencana belajar terstruktur berdasarkan jam komitmen mingguan dan target waktu Anda, lengkap dengan fase mingguan, mini project, dan kriteria penyelesaian.
+          </p>
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label for="roadmapGoal" class="form-label">Tujuan Karier / Spesialisasi Belajar <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="roadmapGoal" placeholder="Contoh: Menjadi Full-Stack Web Developer (React + Node.js)">
+            </div>
+            <div class="col-md-5">
+              <label for="roadmapLevel" class="form-label">Titik Awal Saat Ini</label>
+              <select class="form-select" id="roadmapLevel">
+                <option value="Total Beginner">Total Beginner (Nol pengalaman)</option>
+                <option value="Dasar Pemrograman">Dasar Pemrograman (Pernah belajar sintaks)</option>
+                <option value="Menengah">Menengah (Bisa buat web sederhana)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="roadmapWeeklyHours" class="form-label">Komitmen Waktu Mingguan</label>
+              <select class="form-select" id="roadmapWeeklyHours">
+                <option value="5">5 jam / minggu (Santai)</option>
+                <option value="10" selected>10 jam / minggu (Sedang / Pekerja)</option>
+                <option value="20">20 jam / minggu (Intensif)</option>
+                <option value="40">40 jam / minggu (Full-time Bootcamp Pace)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="roadmapTimeline" class="form-label">Target Durasi Belajar</label>
+              <select class="form-select" id="roadmapTimeline">
+                <option value="1">1 Bulan (Sprint Cepat)</option>
+                <option value="3" selected>3 Bulan (Rekomendasi Standar)</option>
+                <option value="6">6 Bulan (Komprehensif & Portofolio)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="button" id="btnSubmitRoadmap" class="btn btn-primary btn-sm" style="background: var(--indigo-600); border: none;">
+            <i class="bi bi-map"></i> Buat Roadmap Belajar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: MOCK INTERVIEW SIMULATOR -->
+  <div class="modal fade" id="interviewModal" tabindex="-1" aria-labelledby="interviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title d-flex align-items-center gap-2 text-white" id="interviewModalLabel">
+            <i class="bi bi-mic text-rose-400"></i> Mock Interview — Simulasi Wawancara
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted" style="font-size: 0.85rem;">
+            AI bertindak sebagai pewawancara kerja. Anda akan diberikan <strong>satu pertanyaan</strong> dalam setiap giliran, kemudian AI memberikan umpan balik konstruktif (STAR method) sebelum melanjutkan ke pertanyaan berikutnya.
+          </p>
+          <div class="mb-3">
+            <label for="interviewRole" class="form-label">Posisi Pekerjaan yang Disimulasikan <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="interviewRole" placeholder="Contoh: Junior Backend Developer / UI UX Designer">
+          </div>
+          <div class="mb-3">
+            <label for="interviewDifficulty" class="form-label">Tingkat Kesulitan Wawancara</label>
+            <select class="form-select" id="interviewDifficulty">
+              <option value="Entry-Level / Magang">Entry-Level / Magang</option>
+              <option value="Junior" selected>Junior (Pertanyaan dasar & situational)</option>
+              <option value="Mid-Level">Mid-Level (Studi kasus & arsitektur teknis)</option>
+              <option value="HR / Behavioral">HR Behavioral Interview</option>
+            </select>
+          </div>
+          <div class="alert alert-info py-2" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: #c7d2fe; font-size: 0.78rem;">
+            <i class="bi bi-info-circle me-1"></i> Sesi simulasi ini bersifat edukatif dan bukan jaminan penerimaan kerja di dunia nyata.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button type="button" id="btnStartInterview" class="btn btn-primary btn-sm" style="background: var(--indigo-600); border: none;">
+            <i class="bi bi-play-fill"></i> Mulai Sesi Wawancara
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: AI PARAMETER SETTINGS -->
+  <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title d-flex align-items-center gap-2 text-white" id="settingsModalLabel">
+            <i class="bi bi-sliders text-indigo-400"></i> Konfigurasi AI & Parameter Gemini
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Preset Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Preset Konfigurasi AI</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="presetRadio" id="presetAccurate" value="accurate" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="presetAccurate">Accurate (0.2)</label>
+
+              <input type="radio" class="btn-check" name="presetRadio" id="presetBalanced" value="balanced" autocomplete="off" checked>
+              <label class="btn btn-outline-primary btn-sm" for="presetBalanced">Balanced (0.7)</label>
+
+              <input type="radio" class="btn-check" name="presetRadio" id="presetCreative" value="creative" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="presetCreative">Creative (1.0)</label>
+            </div>
+            <div id="presetDescription" class="form-text text-muted mt-2" style="font-size: 0.8rem;">
+              General career consulting, natural conversational tone, and balanced guidance.
+            </div>
+          </div>
+
+          <!-- Model Selection -->
+          <div class="mb-3">
+            <label for="selectModel" class="form-label">Pilihan Model Gemini</label>
+            <select class="form-select form-select-sm" id="selectModel">
+              <option value="gemini-flash-lite-latest" selected>Gemini Flash Lite (Tercepat - Direkomendasikan)</option>
+              <option value="gemini-flash-latest">Gemini Flash Latest (Seimbang)</option>
+              <option value="gemini-3.8-flash">Gemini 3.8 Flash (Lebih Cerdas, Lebih Lambat)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning & Analisis Kompleks)</option>
+            </select>
+          </div>
+
+          <!-- Temperature Slider -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="rangeTemperature" class="form-label mb-0">Temperature: <span id="tempValue" class="text-indigo-400 fw-bold">0.7</span></label>
+              <span class="badge bg-secondary" style="font-size: 0.7rem;">0.0 - 2.0</span>
+            </div>
+            <input type="range" class="form-range" min="0.0" max="2.0" step="0.1" id="rangeTemperature" value="0.7">
+            
+            <!-- Important educational note required by prompt -->
+            <div class="p-2 mt-1 rounded" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); font-size: 0.74rem; color: var(--slate-300);">
+              <i class="bi bi-info-circle text-indigo-400 me-1"></i>
+              <strong>Catatan Teknis:</strong> Temperature mengatur variasi dan determinisme respons, bukan ukuran kecerdasan atau kebenaran faktual model. Nilai rendah cocok untuk evaluasi CV terstruktur; nilai tinggi cocok untuk eksplorasi ide.
+            </div>
+          </div>
+
+          <!-- Top-P Slider -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="rangeTopP" class="form-label mb-0">Top-P (Nucleus Sampling): <span id="topPValue" class="text-indigo-400 fw-bold">0.9</span></label>
+            </div>
+            <input type="range" class="form-range" min="0.1" max="1.0" step="0.05" id="rangeTopP" value="0.9">
+          </div>
+
+          <!-- Max Output Tokens -->
+          <div class="mb-3">
+            <label for="selectMaxTokens" class="form-label">Max Output Tokens</label>
+            <select class="form-select form-select-sm" id="selectMaxTokens">
+              <option value="1024">1,024 Tokens (Jawaban Singkat)</option>
+              <option value="2048" selected>2,048 Tokens (Standar Optimal)</option>
+              <option value="4096">4,096 Tokens (Laporan / Roadmap Detail)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+          <button type="button" id="btnSaveSettings" class="btn btn-primary btn-sm" style="background: var(--indigo-600); border: none;">Simpan Pengaturan</button>
+        </div>
+  <!-- MODAL 6: AUTHENTICATION (LOGIN & REGISTER) -->
+  <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title d-flex align-items-center gap-2 text-white" id="authModalLabel">
+            <i class="bi bi-shield-lock text-indigo-400"></i> Akun Pengguna CareerAI
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Auth Tabs -->
+          <ul class="nav nav-pills nav-fill mb-3" id="authTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active py-2 text-white" id="tab-login" data-bs-toggle="pill" data-bs-target="#pill-login" type="button" role="tab" aria-selected="true" style="font-size: 0.88rem;">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Masuk (Login)
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link py-2 text-white" id="tab-register" data-bs-toggle="pill" data-bs-target="#pill-register" type="button" role="tab" aria-selected="false" style="font-size: 0.88rem;">
+                <i class="bi bi-person-plus me-1"></i> Daftar Akun Baru
+              </button>
+            </li>
+          </ul>
+
+          <!-- Alert error message -->
+          <div id="authAlert" class="alert alert-danger py-2 d-none" style="font-size: 0.82rem; background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.4); color: #fecdd3;"></div>
+
+          <div class="tab-content" id="authTabsContent">
+            <!-- TAB 1: LOGIN -->
+            <div class="tab-pane fade show active" id="pill-login" role="tabpanel">
+              <form id="formLogin" onsubmit="event.preventDefault(); app.handleLogin();">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="loginEmail" placeholder="nama@email.com" required autocomplete="email">
+                </div>
+                <div class="mb-3">
+                  <label for="loginPassword" class="form-label">Password</label>
+                  <input type="password" class="form-control" id="loginPassword" placeholder="Masukkan password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="btnLoginSubmit" class="btn btn-primary w-100 py-2 mt-2" style="background: var(--indigo-600); border: none; font-weight: 600;">
+                  Masuk ke CareerAI
+                </button>
+              </form>
+            </div>
+
+            <!-- TAB 2: REGISTER -->
+            <div class="tab-pane fade" id="pill-register" role="tabpanel">
+              <form id="formRegister" onsubmit="event.preventDefault(); app.handleRegister();">
+                <div class="mb-3">
+                  <label for="regName" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="regName" placeholder="Contoh: Budi Santoso" required autocomplete="name">
+                </div>
+                <div class="mb-3">
+                  <label for="regEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                  <input type="email" class="form-control" id="regEmail" placeholder="nama@email.com" required autocomplete="email">
+                </div>
+                <div class="mb-3">
+                  <label for="regPassword" class="form-label">Password (Minimal 6 karakter) <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="regPassword" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="new-password">
+                </div>
+                <button type="submit" id="btnRegisterSubmit" class="btn btn-primary w-100 py-2 mt-2" style="background: var(--indigo-600); border: none; font-weight: 600;">
+                  Daftar Akun Baru
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Marked for markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <!-- DOMPurify to prevent XSS from markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.2/dist/purify.min.js"></script>
+  <!-- Highlight.js for syntax highlighting -->
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <!-- pdf.js for client-side PDF text extraction (CV import) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <!-- Mammoth.js for client-side .docx text extraction (CV import) -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+
+  <!-- App JS -->
+  <script src="/js/app.js"></script>
+</body>
+</html>
