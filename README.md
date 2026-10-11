@@ -222,3 +222,9 @@ Parameter AI dapat disesuaikan langsung melalui antarmuka pengguna (*Modal Konfi
 | **"The requested Gemini model was not found (404)"** | Nama model di `.env` sudah usang atau salah ketik. | Gunakan salah satu model yang didukung: `gemini-flash-lite-latest`, `gemini-flash-latest`, `gemini-3.8-flash`, atau `gemini-2.5-pro`. |
 | **"Request timed out"** | Koneksi internet lambat atau endpoint Google mengalami latensi tinggi. | Periksa koneksi internet Anda atau tingkatkan nilai `REQUEST_TIMEOUT_MS` di file `.env`. |
 | **Port 3000 sudah digunakan** | Aplikasi lain sedang berjalan pada port 3000. | Ubah `PORT=3001` atau port lain pada file `.env`. |
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah **MIT License** — lihat file [LICENSE](LICENSE) untuk detailnya.
